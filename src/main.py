@@ -1,191 +1,60 @@
-from src.cli.menu import menu
-from src.models.cliente import PessoaFisica
-from src.models.conta import ContaCorrente
-from src.utils.helpers import input_obrigatorio, validar_cpf, validar_data
-from src.transacoes.deposito import Depositar
-from src.transacoes.saque import Sacar
-from src.utils.helpers import validar_cpf
+from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+from fastapi.responses import JSONResponse
 
-def criar_usuario(clientes):
-    while True:
-        cpf_input = input_obrigatorio("CPF: ")
-        cpf = validar_cpf(cpf_input)
+from src.controllers import account, transaction, auth
+from src.database.session import engine
+from src.database.base import Base
+from src.core.config import settings
+from src.core.exceptions import BusinessError, NotFoundError
+from src.utils.test_utils import router as test_router
 
-        if cpf:
-            break
+import logging
+import os
 
-    # verificar duplicado
-    for cliente in clientes:
-        if cliente.cpf == cpf:
-            print("Usuário já existe!")
-            return
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
 
-    nome = input_obrigatorio("Nome: ")
+logger = logging.getLogger(__name__)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    while True:
-        data_input = input_obrigatorio("Data de nascimento: ")
-        data_nascimento = validar_data(data_input)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("App iniciando... banco deve estar migrado via Alembic")
+    yield
 
-        if data_nascimento:
-            break
 
-    endereco = input_obrigatorio("Endereço: ")
+app = FastAPI(
+    title="API Bancária com SQLAlchemy",
+    lifespan=lifespan
+)
 
-    cliente = PessoaFisica(nome, cpf, data_nascimento, endereco)
-    clientes.append(cliente)
+# Routers principais
+app.include_router(auth.router)
+app.include_router(account.router)
+app.include_router(transaction.router)
+# app.include_router(client.router)
+app.include_router(test_router)
 
-    print("Usuário criado com sucesso!")
+# SOMENTE EM TESTE
+# if settings.environment != "prod":
+#     app.include_router(test_router)
 
-def criar_conta(clientes, contas):
-    cpf = input("CPF do cliente: ").strip()
 
-    cliente_encontrado = None
+# Exception handlers globais
+@app.exception_handler(BusinessError)
+async def business_error_handler(request: Request, exc: BusinessError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc)},
+    )
 
-    for cliente in clientes:
-        if cliente.cpf == cpf:
-            cliente_encontrado = cliente
-            break
 
-    if not cliente_encontrado:
-        print("Cliente não encontrado!")
-        return
-
-    numero_conta = len(contas) + 1
-
-    conta = ContaCorrente(numero_conta, cliente_encontrado)
-
-    cliente_encontrado.adicionar_conta(conta)
-    contas.append(conta)
-
-    print("Conta criada com sucesso!")
-
-def depositar(clientes):
-    cpf = input("CPF: ").strip()
-
-    cliente_encontrado = None
-
-    for cliente in clientes:
-        if cliente.cpf == cpf:
-            cliente_encontrado = cliente
-            break
-
-    if not cliente_encontrado:
-        print("Cliente não encontrado!")
-        return
-
-    if not cliente_encontrado.contas:
-        print("Cliente não possui conta!")
-        return
-
-    valor = float(input("Valor do depósito: "))
-
-    # try:
-    #     valor = float(input("Valor do depósito: "))
-    # except ValueError:
-    #     print("Valor inválido!")
-    # return  
-
-    conta = cliente_encontrado.contas[0]
-
-    transacao = Depositar(valor)    
-
-    cliente_encontrado.realizar_transacao(conta, transacao)
-
-    print("Depósito realizado com sucesso!")
-
-def sacar(clientes):
-    cpf_input = input("CPF: ").strip()
-    cpf = validar_cpf(cpf_input)
-
-    if not cpf:
-        print("CPF inválido!")
-        return
-
-    cliente_encontrado = None
-
-    for cliente in clientes:
-        if cliente.cpf == cpf:
-            cliente_encontrado = cliente
-            break
-
-    if not cliente_encontrado:
-        print("Cliente não encontrado!")
-        return
-
-    if not cliente_encontrado.contas:
-        print("Cliente não possui conta!")
-        return
-
-    try:
-        valor = float(input("Valor do saque: "))
-    except ValueError:
-        print("Valor inválido!")
-        return
-
-    conta = cliente_encontrado.contas[0]
-
-    transacao = Sacar(valor)
-
-    try:
-        cliente_encontrado.realizar_transacao(conta, transacao)
-        print("Saque realizado com sucesso!")
-    except ValueError as e:
-        print(f"Erro: {e}")
-
-def exibir_extrato(clientes):
-    from src.utils.helpers import validar_cpf
-
-    cpf = validar_cpf(input("CPF: "))
-    if not cpf:
-        return
-
-    cliente = None
-    for c in clientes:
-        if c.cpf == cpf:
-            cliente = c
-            break
-
-    if not cliente:
-        print("Cliente não encontrado!")
-        return
-
-    if not cliente.contas:
-        print("Cliente não possui conta!")
-        return
-
-    conta = cliente.contas[0]
-
-    conta.exibir_extrato()
-
-def main():
-    clientes = []
-    contas = []
-
-    while True:
-        opcao = menu()
-
-        if opcao == "nu":
-            criar_usuario(clientes)
-
-        elif opcao == "nc":
-            criar_conta(clientes, contas)
-        
-        elif opcao == "d":
-            depositar(clientes)
-        
-        elif opcao == "s":
-            sacar(clientes)
-        
-        elif opcao == "e":
-            exibir_extrato(clientes)
-
-        elif opcao == "q":
-            print("Saindo...")
-            break
-
-        else:
-            print("Opção inválida!")
-
-if __name__ == "__main__":
-    main()
-
+@app.exception_handler(NotFoundError)
+async def not_found_error_handler(request: Request, exc: NotFoundError):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )

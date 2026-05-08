@@ -1,20 +1,63 @@
-<<<<<<< HEAD
+# =========================
 # Python
+# =========================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
+*.pyd
 
+# =========================
+# Virtual Environment
+# =========================
+.venv/
+venv/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# SQLite Databases
+# =========================
+*.sqlite
+*.db
+
+# =========================
 # Pytest
+# =========================
 .pytest_cache/
-
-# Coverage
 .coverage
 htmlcov/
 
-# VS Code
-.vscode/
+# =========================
+# Robot Framework
+# =========================
+log.html
+report.html
+output.xml
 
-# Sistema
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# OS
+# =========================
 .DS_Store
 Thumbs.db
-=======
+
+# =========================
+# Mypy / Ruff / Cache
+# =========================
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# Alembic cache
+# =========================
+*.pyc

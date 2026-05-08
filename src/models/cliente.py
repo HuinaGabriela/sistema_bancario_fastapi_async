@@ -1,34 +1,19 @@
+from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy.orm import relationship
+from src.database.base import Base
 
 
-class Cliente:
-    """
-    Representa um cliente do banco.
-    Pode possuir múltiplas contas.
-    """
-    def __init__(self, endereco):
-        self.endereco = endereco
-        self.contas = []
-    
-    def realizar_transacao(self, conta, transacao):
-        """
-        Executa uma transação na conta (polimorfismo)saque ou deposito.
-        """
-        transacao.realizar_transacao(conta)
-    
-    def adicionar_conta(self, conta):
-        self.contas.append(conta)
+class Cliente(Base):
+    __tablename__ = "clientes"
 
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    cpf = Column(String, unique=True, index=True, nullable=False)
+    senha_hash = Column(String, nullable=False)
+    data_nascimento = Column(Date, nullable=False)
+    endereco = Column(String, nullable=False)
 
-class PessoaFisica(Cliente):
-    """
-    Representa um cliente pessoa física.
-    Armazena dados pessoais e herda comportamento de Cliente.
-    """
-    def __init__(self, nome, cpf, data_nascimento, endereco):
-        """
-        Inicializa os dados do cliente e reutiliza o construtor da classe base.
-        """
-        super().__init__(endereco)
-        self.nome = nome
-        self.cpf = cpf
-        self.data_nascimento = data_nascimento
+    contas = relationship(
+        "Conta",
+        back_populates="cliente",
+        cascade="all, delete-orphan")

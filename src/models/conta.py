@@ -1,58 +1,19 @@
-from abc import ABC, abstractmethod
-from src.models.historico import Historico
+from sqlalchemy import Column, Integer, Numeric, ForeignKey
+from sqlalchemy.orm import relationship
+from src.database.base import Base
 
 
-class Conta(ABC):
-    """
-    Representa uma conta bancária abstrata.
-    """
-    def __init__(self, numero_conta, titular, saldo_inicial=0):
-        self.numero_conta = numero_conta
-        self.titular = titular
-        self.saldo = saldo_inicial
-        self.historico = Historico()
+class Conta(Base):
+    __tablename__ = "contas"
 
-    @abstractmethod
-    def depositar(self, valor):
-        pass
+    id = Column(Integer, primary_key=True, index=True)
+    saldo = Column(Numeric(10, 2), default=0, nullable=False)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), unique=False) # unique=False porque uma conta tem que ter um cliente. 
 
-    @abstractmethod
-    def sacar(self, valor):
-        pass
+    cliente = relationship("Cliente", back_populates="contas")
 
-    def consultar_saldo(self):
-        """
-        Retorna o saldo atual da conta.
-        """
-        return self.saldo
-
-    def registrar_transacao(self, tipo, valor):
-        """
-        Registra uma transação no histórico da conta.
-        """
-        self.historico.registrar_transacao(tipo, valor)
-    
-    def exibir_extrato(self):
-        print("\n===== EXTRATO =====")
-        self.historico.exibir_historico()
-        print(f"\nSaldo atual: R$ {self.saldo:.2f}")
-
-
-class ContaCorrente(Conta):
-    """
-    ContaCorrente herda de Conta, implementando os métodos abstratos.
-    """
-
-    def depositar(self, valor):
-        if valor > 0:
-            self.saldo += valor
-            self.registrar_transacao('Depósito', valor)
-        else:
-            raise ValueError("Valor de depósito deve ser positivo.")
-
-    def sacar(self, valor):
-        if valor > 0 and valor <= self.saldo:
-            self.saldo -= valor
-            self.registrar_transacao('Saque', valor)
-        else:
-            raise ValueError("Valor de saque inválido ou saldo insuficiente.")
+    transacoes = relationship(
+        "Transacao",
+        back_populates="conta",
+        cascade="all, delete-orphan"
+    )
