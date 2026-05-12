@@ -1,39 +1,30 @@
 @echo off
 
-echo ================================
+echo =================================
 echo TESTES E2E (ROBOT)
-echo ================================
+echo =================================
 
 echo Matando processos na porta 8000...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000') do taskkill /PID %%a /F >nul 2>&1
-
-echo Subindo API...
-
-set ENVIRONMENT=test
-set SECRET_KEY=abc123
-
-start "" cmd /c "poetry run uvicorn src.main:app --port 8000"
-
-echo Aguardando API subir...
-
-:wait_loop
-curl -s http://localhost:8000/docs >nul 2>&1
-
-if errorlevel 1 (
-    timeout /t 1 >nul
-    goto wait_loop
+FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :8000') DO (
+taskkill /PID %%P /F >nul 2>&1
 )
 
-echo Rodando Robot...
+echo Subindo API...
+start /B uvicorn src.main:app --host 127.0.0.1 --port 8000
 
-robot .\test\e2e
+echo Aguardando API subir...
+timeout /t 5 /nobreak >nul
+
+echo Rodando Robot...
+robot tests/e2e
 
 echo Finalizando API...
+FOR /F "tokens=5" %%P IN ('netstat -ano ^| findstr :8000') DO (
+taskkill /PID %%P /F >nul 2>&1
+)
 
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000') do taskkill /PID %%a /F >nul 2>&1
-
-echo ================================
+echo =================================
 echo FINALIZADO
-echo ================================
+echo =================================
 
 pause
