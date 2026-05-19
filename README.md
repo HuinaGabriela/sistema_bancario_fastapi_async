@@ -4,28 +4,20 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-green)
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 
-API bancária RESTful desenvolvida com foco em:
 
-* arquitetura em camadas
-* programação assíncrona
-* autenticação JWT
-* testes automatizados
-* boas práticas backend
+API REST bancária assíncrona desenvolvida com foco em arquitetura backend moderna, autenticação JWT e testes automatizados em múltiplos níveis.
 
 ---
 
-# 🚀 Funcionalidades
+# 🚀 Destaques técnicos
 
-* ✔ Cadastro de usuários
-* ✔ Criação de contas bancárias
-* ✔ Login com JWT
-* ✔ Logout com blacklist de tokens
-* ✔ Depósito
-* ✔ Saque com validação de saldo
-* ✔ Consulta de extrato
-* ✔ Paginação no extrato
-* ✔ Migrations com Alembic
-* ✔ Ambientes isolados (dev/test/prod)
+* ✔ Arquitetura em camadas (Controller → Service → Repository)
+* ✔ API assíncrona com FastAPI
+* ✔ Autenticação JWT com blacklist de tokens
+* ✔ Banco de dados com SQLAlchemy assíncrono + Alembic
+* ✔ Testes automatizados (unitários, integração e E2E)
+* ✔ Cobertura de testes (~82%)
+* ✔ Ambiente separado para dev e testes
 
 ---
 
@@ -230,7 +222,28 @@ Validação e serialização com Pydantic.
 
 ---
 
+# 🔐 Autenticação
+
+A API utiliza autenticação JWT.
+
+Fluxo:
+1. Login com CPF e senha
+2. Geração de token JWT
+3. Uso do token via header Authorization
+4. Logout invalida token via blacklist
+
+---
+
 # ✅ Cobertura de Testes
+
+O projeto possui testes em 3 níveis:
+
+- Unitários: regras de negócio isoladas
+  
+- Integração: API + banco de dados
+  
+- E2E: fluxos completos com Robot Framework
+  
 
 Os testes cobrem:
 
