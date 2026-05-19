@@ -262,7 +262,7 @@ pytest --cov=src --cov-report=term-missing
 
 Resultado atual:
 
-Coverage total: 82%
+![Coverage](https://img.shields.io/badge/coverage-82%25-green)
 
 Total de linhas: 475
 
