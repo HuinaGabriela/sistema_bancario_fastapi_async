@@ -253,6 +253,64 @@ Os testes cobrem:
 * [ ] Testes de concorrência
 * [ ] Rate limiting
 
+
+📊 Test Coverage
+
+Execução de testes de cobertura:
+
+pytest --cov=src --cov-report=term-missing
+
+Resultado atual:
+
+Coverage total: 82%
+
+Total de linhas: 475
+
+Linhas não cobertas: 87
+
+Cobertura por camada:
+
+| Camada       | Cobertura                  |
+| ------------ | -------------------------- |
+| Controllers  | Parcial (73% - 92%)        |
+| Services     | ⚠️ Baixa (48% - 100%)      |
+| Repositories | ⚠️ Média/baixa (59% - 62%) |
+| Schemas      | Alta (95% - 100%)          |
+| Models       | 100%                       |
+| Core / Utils | 56% - 100%                 |
+
+🧠 Interpretação da cobertura
+
+A cobertura atual é considerada boa para fins de portfólio e aprendizado (82%), porém com concentração de lacunas em:
+
+- Camada de serviços (regras de negócio)
+
+- Camada de repositórios (acesso a dados)
+
+- Alguns fluxos alternativos de autenticação
+
+🚧 Melhorias planejadas (roadmap técnico)
+
+As seguintes melhorias foram identificadas para evolução futura do projeto:
+
+🔴 Prioridade alta
+
+Aumentar cobertura da camada account_service
+
+Melhorar testes de regras de negócio (validações e fluxos alternativos)
+
+🟡 Prioridade média
+
+Expandir testes dos repositórios (account_repository, transaction_repository)
+
+Cobrir cenários de erro em autenticação
+
+🟢 Prioridade baixa
+
+Melhorar cobertura do JWT service (expiração e edge cases)
+
+Reduzir warnings de depreciação do Pydantic e datetime
+
 ---
 
 # 👩‍💻 Autor
